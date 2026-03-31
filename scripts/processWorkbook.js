@@ -18,24 +18,37 @@ for (const sheetName of sheetNames) {
   const sheet = workbook.Sheets[sheetName];
   const data = XLSX.utils.sheet_to_json(sheet);
 
-  const normalized = data.map((row, index) => ({
-    id: `${sheetName}-${index}`,
-    week: row["Week"] || row["week"] || null,
-    category: row["Category"] || row["category"] || sheetName,
-    rank: Number(row["Rank"] || row["rank"] || 0),
-    title: row["Title"] || row["title"] || "",
-    seasonTitle: row["Season Title"] || row["season_title"] || "",
-    hoursViewed: Number(row["Hours Viewed"] || row["hours_viewed"] || 0),
-    runtime: Number(row["Runtime"] || row["runtime"] || 0),
-    views: Number(row["Views"] || row["views"] || row["Weekly Views"] || 0),
-    weeksInTop10: Number(row["Weeks in Top 10"] || row["weeks_in_top_10"] || 0),
-    sourceSheet: sheetName,
-  }));
+  const normalized = data.map((row, index) => {
+    const week = row["week"] || null;
+    const category = row["category"] || sheetName;
+    const rank = Number(row["weekly_rank"]);
+    const title = row["show_title"] || "";
+    const seasonTitle = row["season_title"] || "";
+    const hoursViewed = Number(row["weekly_hours_viewed"] || 0);
+    const runtime = Number(row["runtime"] || 0);
+    const views = Number(row["weekly_views"] || 0);
+    const weeksInTop10 = Number(row["cumulative_weeks_in_top_10"] || 0);
+
+    return {
+      id: `${sheetName}-${index}`,
+      week,
+      category,
+      rank,
+      title,
+      seasonTitle,
+      hoursViewed,
+      runtime,
+      views,
+      weeksInTop10,
+      sourceSheet: sheetName,
+    };
+  });
 
   rows.push(...normalized);
 }
 
-rows = rows.filter((d) => d.title || d.seasonTitle);
+// keep only rows with a real title and a real rank
+rows = rows.filter((d) => d.title && !Number.isNaN(d.rank) && d.rank > 0);
 
 fs.writeFileSync(
   path.join(outputDir, "weekly_top10.json"),
@@ -45,14 +58,15 @@ fs.writeFileSync(
 const byTitle = {};
 
 for (const row of rows) {
-  const key = row.title || row.seasonTitle;
+  const key = row.title;
   if (!key) continue;
 
   if (!byTitle[key]) {
     byTitle[key] = {
       title: key,
+      seasonTitle: row.seasonTitle,
       category: row.category,
-      peakRank: row.rank || 999,
+      peakRank: row.rank,
       weeksCharted: 0,
       totalViews: 0,
       totalHours: 0,
@@ -61,16 +75,16 @@ for (const row of rows) {
     };
   }
 
-  byTitle[key].peakRank = Math.min(byTitle[key].peakRank, row.rank || 999);
+  byTitle[key].peakRank = Math.min(byTitle[key].peakRank, row.rank);
   byTitle[key].weeksCharted += 1;
   byTitle[key].totalViews += row.views || 0;
   byTitle[key].totalHours += row.hoursViewed || 0;
 
-  if (row.week && (!byTitle[key].firstWeek || row.week < byTitle[key].firstWeek)) {
+  if (row.week && row.week < byTitle[key].firstWeek) {
     byTitle[key].firstWeek = row.week;
   }
 
-  if (row.week && (!byTitle[key].lastWeek || row.week > byTitle[key].lastWeek)) {
+  if (row.week && row.week > byTitle[key].lastWeek) {
     byTitle[key].lastWeek = row.week;
   }
 }
@@ -80,4 +94,5 @@ fs.writeFileSync(
   JSON.stringify(Object.values(byTitle), null, 2)
 );
 
-console.log("Done. Created weekly_top10.json and title_summary.json");
+console.log(`Done. Created weekly_top10.json with ${rows.length} rows`);
+console.log(`Done. Created title_summary.json with ${Object.keys(byTitle).length} titles`);

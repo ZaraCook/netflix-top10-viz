@@ -20,12 +20,21 @@ function RankChart({ data }) {
       .attr("height", height);
 
     const parsedData = data
-      .filter((d) => d.week && d.rank)
-      .map((d) => ({
-        ...d,
-        parsedWeek: new Date(d.week),
-      }))
-      .sort((a, b) => a.parsedWeek - b.parsedWeek);
+        .filter((d) => d.week && d.rank > 0)
+        .map((d) => ({
+            ...d,
+            parsedWeek: new Date(d.week),
+            rank: Number(d.rank),
+        }))
+        .sort((a, b) => a.parsedWeek - b.parsedWeek);
+
+    if (parsedData.length === 0) {
+        d3.select(ref.current)
+            .append("div")
+            .style("padding", "16px")
+            .text("No valid rank data available for this title.");
+        return;
+    }
 
     const x = d3
       .scaleTime()

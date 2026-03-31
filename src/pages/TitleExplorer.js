@@ -7,11 +7,11 @@ function TitleExplorer() {
   const [selectedTitle, setSelectedTitle] = useState("");
 
   const titles = useMemo(() => {
-    return [...new Set(titleSummary.map((d) => d.title))].sort();
+    return [...new Set(titleSummary.map((d) => d.title).filter(Boolean))].sort();
   }, [titleSummary]);
 
   const selectedData = weeklyData.filter(
-    (d) => (d.title || d.seasonTitle) === selectedTitle
+    (d) => (d.title) === selectedTitle
   );
 
   if (loading) return <div style={{ padding: "20px" }}>Loading...</div>;
