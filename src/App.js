@@ -7,7 +7,7 @@ import Insights from "./pages/Insights";
 
 function App() {
   return (
-    <Router>
+    <Router basename="/netflix-top10-viz">
       <Navbar />
       <Routes>
         <Route path="/" element={<Home />} />
