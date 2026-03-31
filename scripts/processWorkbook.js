@@ -57,14 +57,26 @@ fs.writeFileSync(
 
 const byTitle = {};
 
+function isSeasonEntry(row) {
+  return row.category && row.category.includes("TV") && row.seasonTitle && row.seasonTitle !== "N/A";
+}
+
+function getSummaryKey(row) {
+  if (isSeasonEntry(row)) {
+    return `${row.title}||${row.seasonTitle}`;
+  }
+  return row.title;
+}
+
 for (const row of rows) {
-  const key = row.title;
+  const key = getSummaryKey(row);
   if (!key) continue;
 
   if (!byTitle[key]) {
     byTitle[key] = {
-      title: key,
-      seasonTitle: row.seasonTitle,
+      title: row.title,
+      seasonTitle: row.seasonTitle || "N/A",
+      displayTitle: isSeasonEntry(row) ? row.seasonTitle : row.title,
       category: row.category,
       peakRank: row.rank,
       weeksCharted: 0,

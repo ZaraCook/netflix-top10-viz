@@ -1,76 +1,73 @@
-import { useEffect, useRef } from "react";
 import * as d3 from "d3";
 
 function RankChart({ data }) {
-  const ref = useRef();
+  if (!data || data.length === 0) {
+    return <div className="chart-empty">No rank history available.</div>;
+  }
 
-  useEffect(() => {
-    if (!data || data.length === 0) return;
+  const width = 980;
+  const height = 360;
+  const margin = { top: 20, right: 26, bottom: 52, left: 62 };
 
-    const width = 800;
-    const height = 400;
-    const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+  const parsedData = data
+    .filter((d) => d.week && d.rank > 0)
+    .map((d) => ({
+      ...d,
+      parsedWeek: new Date(d.week),
+      rank: Number(d.rank),
+      views: Number(d.views) || 0,
+    }))
+    .sort((a, b) => a.parsedWeek - b.parsedWeek);
 
-    d3.select(ref.current).selectAll("*").remove();
+  if (parsedData.length === 0) {
+    return <div className="chart-empty">No valid rank data available.</div>;
+  }
 
-    const svg = d3
-      .select(ref.current)
-      .append("svg")
-      .attr("width", width)
-      .attr("height", height);
+  const x = d3
+    .scaleTime()
+    .domain(d3.extent(parsedData, (d) => d.parsedWeek))
+    .range([margin.left, width - margin.right]);
 
-    const parsedData = data
-        .filter((d) => d.week && d.rank > 0)
-        .map((d) => ({
-            ...d,
-            parsedWeek: new Date(d.week),
-            rank: Number(d.rank),
-        }))
-        .sort((a, b) => a.parsedWeek - b.parsedWeek);
+  const y = d3.scaleLinear().domain([10, 1]).range([height - margin.bottom, margin.top]);
 
-    if (parsedData.length === 0) {
-        d3.select(ref.current)
-            .append("div")
-            .style("padding", "16px")
-            .text("No valid rank data available for this title.");
-        return;
-    }
+  const line = d3
+    .line()
+    .x((d) => x(d.parsedWeek))
+    .y((d) => y(d.rank));
 
-    const x = d3
-      .scaleTime()
-      .domain(d3.extent(parsedData, (d) => d.parsedWeek))
-      .range([margin.left, width - margin.right]);
+  const xTicks = x.ticks(8);
 
-    const y = d3
-      .scaleLinear()
-      .domain([10, 1])
-      .range([height - margin.bottom, margin.top]);
+  return (
+    <div className="chart-wrap">
+      <svg viewBox={`0 0 ${width} ${height}`} className="chart-svg" role="img" aria-label="Title rank history">
+        {xTicks.map((tick) => (
+          <g key={tick.toISOString()}>
+            <line className="grid-line grid-line-vertical" x1={x(tick)} y1={margin.top} x2={x(tick)} y2={height - margin.bottom} />
+            <text className="axis-text" x={x(tick)} y={height - margin.bottom + 20} textAnchor="middle">
+              {d3.timeFormat("%b %y")(tick)}
+            </text>
+          </g>
+        ))}
 
-    const line = d3
-      .line()
-      .x((d) => x(d.parsedWeek))
-      .y((d) => y(d.rank));
+        {d3.range(1, 11).map((rank) => (
+          <g key={`rank-${rank}`}>
+            <line className="grid-line" x1={margin.left} y1={y(rank)} x2={width - margin.right} y2={y(rank)} />
+            <text className="axis-text" x={margin.left - 10} y={y(rank) + 4} textAnchor="end">
+              {rank}
+            </text>
+          </g>
+        ))}
 
-    svg
-      .append("g")
-      .attr("transform", `translate(0,${height - margin.bottom})`)
-      .call(d3.axisBottom(x));
+        <path d={line(parsedData)} fill="none" stroke="#e50914" strokeWidth="2.8" />
 
-    svg
-      .append("g")
-      .attr("transform", `translate(${margin.left},0)`)
-      .call(d3.axisLeft(y));
-
-    svg
-      .append("path")
-      .datum(parsedData)
-      .attr("fill", "none")
-      .attr("stroke", "#E50914")
-      .attr("stroke-width", 2)
-      .attr("d", line);
-  }, [data]);
-
-  return <div ref={ref}></div>;
+        {parsedData.map((point, index) => (
+          <circle key={`${point.week}-${index}`} cx={x(point.parsedWeek)} cy={y(point.rank)} r="4" fill="#e50914">
+            <title>{`${d3.timeFormat("%Y-%m-%d")(point.parsedWeek)}\nRank ${point.rank}\nViews ${d3.format(",")(point.views)}`}</title>
+          </circle>
+        ))}
+      </svg>
+    </div>
+  );
 }
 
 export default RankChart;
