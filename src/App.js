@@ -1,11 +1,21 @@
-import './App.css';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
+import TitleExplorer from "./pages/TitleExplorer";
+import Compare from "./pages/Compare";
+import Insights from "./pages/Insights";
 
 function App() {
   return (
-    <div style={{ padding: "20px" }}>
-      <h1>Behind the Top 10</h1>
-      <p>Netflix Data Visualization Project</p>
-    </div>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/title-explorer" element={<TitleExplorer />} />
+        <Route path="/compare" element={<Compare />} />
+        <Route path="/insights" element={<Insights />} />
+      </Routes>
+    </Router>
   );
 }
 
