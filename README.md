@@ -1,53 +1,231 @@
-# Getting Started with Create React App
+# Netflix Top 10 Visualization
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+A comprehensive interactive dashboard for analyzing Netflix's global top 10 rankings across categories, time periods, and individual titles. Explore trends, compare shows/seasons, and discover patterns in streaming performance.
 
-## Available Scripts
+**Live Demo:** https://zaracook.github.io/netflix-top10-viz
 
-In the project directory, you can run:
+## Features
 
-### `npm start`
+### 📊 Home (Overview)
+- High-level KPI metrics: total titles, weeks charted, categories, avg longevity, total views, and hours viewed
+- Category-based trend analysis with weekly views over time
+- Most-watched titles by total views
+- Views distribution by category (pie chart)
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+### 🔍 Title Explorer (Deep Dive)
+- Search and explore individual titles with season support
+- Rank trajectory over time with interactive chart
+- Recent weekly ranking snapshots
+- Season-by-season comparison:
+  - Comparative rank trajectories
+  - Durability metrics by season
+  - Seasonal views distribution
+  - Views trend by season
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+### ⚖️ Compare (Side-by-Side)
+- Select and compare 2 shows/seasons on a single timeline
+- Dual-line rank chart with distinct colors
+- Hover tooltips showing rank, views, and date
+- Type-to-filter combo search for quick selection
+- Year/month filtering for targeted comparison windows
 
-### `npm test`
+### 🔬 Insights Lab (Diagnostics)
+- **Rank Density Heatmap:** Distribution of titles across different rank positions
+- **Reach vs. Longevity Scatter:** Correlation between total views and weeks charted
+- **Most Durable Titles:** Identify shows with consistent performance
+- **#1 Winners by Category:** Pie chart showing which categories dominate #1 positions
+- **Weekly #1 Trends:** Multi-line chart tracking #1 rankings by category over time
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+## Tech Stack
 
-### `npm run build`
+- **Frontend:** React 18 with React Router v7
+- **Data Visualization:** D3.js v7
+- **Build Tool:** Create React App
+- **Deployment:** GitHub Pages
+- **Data Processing:** Node.js script with XLSX parsing
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+## Project Structure
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+```
+netflix-top10-viz/
+├── public/
+│   ├── data/
+│   │   ├── weekly_top10.json      # Weekly rankings (9920+ rows)
+│   │   └── title_summary.json      # Title aggregates (3500+ entries)
+│   └── index.html
+├── scripts/
+│   └── processWorkbook.js          # Data pipeline from Excel → JSON
+├── src/
+│   ├── components/
+│   │   ├── Navbar.js
+│   │   ├── RankChart.js            # Single-line rank visualization
+│   │   └── CompareRankChart.js     # Dual-line comparison
+│   ├── pages/
+│   │   ├── Home.js                 # Overview dashboard
+│   │   ├── TitleExplorer.js        # Deep-dive & season analysis
+│   │   ├── Compare.js              # Side-by-side ranking comparison
+│   │   └── Insights.js             # Diagnostics & pattern exploration
+│   ├── hooks/
+│   │   └── useNetflixData.js       # Data loading hook
+│   ├── utils/
+│   │   └── analytics.js            # Analytics aggregations & formatting
+│   ├── App.js
+│   └── index.js
+└── package.json
+```
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+## Getting Started
 
-### `npm run eject`
+### Prerequisites
+- Node.js (v14+)
+- npm or yarn
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+### Installation
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+```bash
+git clone https://github.com/ZaraCook/netflix-top10-viz.git
+cd netflix-top10-viz
+npm install
+```
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+### Development
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+```bash
+npm start
+```
 
-## Learn More
+Runs the app at [http://localhost:3000](http://localhost:3000). The page reloads on changes.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Build for Production
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+```bash
+npm run build
+```
 
-### Code Splitting
+Creates an optimized production build in the `build` folder.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+### Deploy to GitHub Pages
+
+```bash
+npm run deploy
+```
+
+Automatically builds and deploys to GitHub Pages. Uses the `gh-pages` package to manage the deployment branch.
+
+## Data Pipeline
+
+### Raw Data Source
+- Netflix weekly top 10 rankings from `raw-data/all-weeks-global.xlsx`
+
+### Processing (`scripts/processWorkbook.js`)
+- Parses Excel workbook with XLSX library
+- Separates TV shows and movies into distinct rows per season
+- Aggregates views and hours by title/season/week
+- Generates two JSON outputs:
+
+**weekly_top10.json:** Weekly rankings with structure:
+```json
+{
+  "week": "2023-07-16",
+  "title": "Bridgerton",
+  "seasonTitle": "Season 1",
+  "displayTitle": "Bridgerton: Season 1",
+  "category": "TV (English)",
+  "rank": 5,
+  "views": 15200000,
+  "hours": 125600000
+}
+```
+
+**title_summary.json:** Aggregated title statistics:
+```json
+{
+  "title": "Bridgerton",
+  "seasonTitle": "Season 1",
+  "displayTitle": "Bridgerton: Season 1",
+  "category": "TV (English)",
+  "peakRank": 1,
+  "weeksCharted": 12,
+  "totalViews": 182400000,
+  "totalHours": 1507200000,
+  "firstWeek": "2023-07-16",
+  "lastWeek": "2023-10-08"
+}
+```
+
+### Regenerating Data
+If you update the raw Excel file:
+```bash
+node scripts/processWorkbook.js
+```
+
+This regenerates both JSON files in `public/data/`.
+
+## Key Features & UX
+
+### Unified Filtering
+- **Title Search:** Multi-field search across title, season, and display name
+- **Content Type:** Filter by Movies or TV Shows
+- **Year/Month:** Date range selection
+- **Clear Filters:** Reset all selections at once
+
+### Merged Combo Controls
+- Type-to-filter selectors combining search and dropdown functionality
+- Autocomplete suggestions for quick navigation
+- Consistent across all pages for familiar UX
+
+### Analytics Utilities (`src/utils/analytics.js`)
+- `formatCompactNumber()` - Format large numbers as K/M/B notation
+- `filterBySearch()` - Multi-field text filtering
+- `filterWeeklyByYearMonth()` - Date range filtering
+- `getTitleRankHistory()` - Season-aware rank extraction
+- `getNumberOneCategoryShare()` - #1 winner breakdown
+- `getWeeklyNumberOneTrend()` - Weekly #1 trends by category
+- `getSeasonComparisonData()` - Season-level aggregations
+
+### Chart Types
+- **Line Charts:** Rank trajectories over time
+- **Bar Charts:** Top titles, durability metrics
+- **Pie Charts:** Category distribution, #1 winners
+- **Heatmap:** Rank density distribution
+- **Scatter Plot:** Reach vs. longevity correlation
+- **Multi-line Charts:** Category trends
+
+## Scripts
+
+```bash
+npm start          # Start dev server (http://localhost:3000)
+npm build          # Build for production
+npm test           # Run tests
+npm run deploy      # Build & deploy to GitHub Pages
+```
+
+## Deployment
+
+This project is configured for GitHub Pages:
+- **Repository:** github.com/ZaraCook/netflix-top10-viz
+- **Live Site:** https://zaracook.github.io/netflix-top10-viz
+- **Deployment:** Automatic via `npm run deploy` (uses gh-pages package)
+- **Base Path:** `/netflix-top10-viz`
+
+### Environment Setup
+- `homepage` in `package.json` configured for GitHub Pages path
+- `Router basename` in `App.js` set to `/netflix-top10-viz`
+- Data paths use `process.env.PUBLIC_URL` for cross-environment compatibility
+
+## Browser Compatibility
+- Modern browsers with ES6+ support
+- Tested on Chrome, Firefox, Safari, Edge
+
+## License
+MIT
+
+## Contributing
+Contributions are welcome! Feel free to open issues or submit pull requests for improvements.
+
+---
+
+**Built with ❤️ using React and D3.js**
 
 ### Analyzing the Bundle Size
 
